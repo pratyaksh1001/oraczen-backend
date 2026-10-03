@@ -177,17 +177,14 @@ export default function JobPage() {
     <div className="min-h-screen bg-[#f5f4ee] font-sans text-[#1f1e1d] antialiased">
       <header className="sticky top-0 border-b border-[#e3e0d5] bg-[#f5f4ee]">
         <nav className="flex items-center gap-2 overflow-x-auto p-2.5">
-          <Link
-            href="/"
-            className="mr-2 shrink-0 rounded-lg bg-[#c96442] px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#b5573a]"
-          >
-            Create job
-          </Link>
           <Link href="/" className={tab}>
             All tickets
           </Link>
           <Link href="/records" className={tab}>
             All processed records
+          </Link>
+          <Link href="/jobs" className={tab}>
+            All jobs
           </Link>
           <span className="ml-auto shrink-0 rounded-lg bg-[#ebe9df] px-3 py-1.5 text-xs font-medium text-[#6b6a64]">
             Job <span className="text-[#1f1e1d]">{id}</span>
@@ -253,7 +250,7 @@ export default function JobPage() {
               )}
             </section>
 
-            <section className={`${card} divide-y divide-[#e3e0d5] overflow-hidden`}>
+            <section className="space-y-2.5">
               {items.map(([ticketId, item]) => {
                 const found = findRecord(records, ticketId);
                 const href = linkFor(ticketId, found?.kind, item.status);
@@ -265,7 +262,7 @@ export default function JobPage() {
                 );
 
                 return (
-                  <div key={ticketId} className="px-4 py-3">
+                  <div key={ticketId} className={`${card} px-4 py-3`}>
                     {href ? (
                       <Link href={href} className="block transition-opacity hover:opacity-70">
                         {header}

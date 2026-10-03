@@ -44,7 +44,7 @@ export default function TicketsPage() {
     setStartError(false);
     try {
       const res = await api.post("/api/jobs", { tickets: selectedIds });
-      router.push(`/job/${res.data.job_id}`);
+      router.push(`/jobs/${res.data.job_id}`);
     } catch {
       setStartError(true);
       setStarting(false);

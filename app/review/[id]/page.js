@@ -104,22 +104,23 @@ export default function ReviewPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f4ee] font-sans text-[#1f1e1d] antialiased">
-      <header className="sticky top-0 border-b border-[#e3e0d5] bg-[#f5f4ee]">
-        <nav className="flex items-center gap-2 overflow-x-auto p-2.5">
-          <Link
-            href="/"
-            className="mr-2 shrink-0 rounded-lg bg-[#c96442] px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#b5573a]"
-          >
-            Create job
-          </Link>
-          <Link href="/" className={tab}>
-            All tickets
-          </Link>
-          <Link href="/records" className={`${tab} ${tabActive}`}>
-            All processed records
-          </Link>
-        </nav>
-      </header>
+        <header className="sticky top-0 border-b border-[#e3e0d5] bg-[#f5f4ee]">
+          <nav className="flex items-center gap-2 overflow-x-auto p-2.5">
+
+            <Link href="/" className={tab}>
+              All tickets
+            </Link>
+            <Link href="/records" className={tab}>
+              All processed records
+            </Link>
+            <Link href="/jobs" className={tab}>
+              All jobs
+            </Link>
+            <span className="ml-auto shrink-0 rounded-lg bg-[#ebe9df] px-3 py-1.5 text-xs font-medium text-[#6b6a64]">
+              record <span className="text-[#1f1e1d]">{id}</span>
+            </span>
+          </nav>
+        </header>
 
       <main className="mx-auto w-full max-w-2xl px-2.5 py-10">
         <Link href="/records" className="text-sm text-[#6b6a64] transition-colors hover:text-[#1f1e1d]">
