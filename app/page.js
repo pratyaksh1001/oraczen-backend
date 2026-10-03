@@ -1,68 +1,162 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import api from "@/api";
+
+const tab =
+  "shrink-0 rounded-lg px-3.5 py-2 text-sm font-medium text-[#6b6a64] transition-colors hover:bg-[#ebe9df] hover:text-[#1f1e1d]";
+const tabActive = "bg-[#ebe9df] text-[#1f1e1d]";
+const checkbox = "size-4 cursor-pointer accent-[#c96442]";
+
+export default function TicketsPage() {
+  const router = useRouter();
+  const [tickets, setTickets] = useState(null);
+  const [error, setError] = useState(false);
+  const [selected, setSelected] = useState(new Set());
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState(false);
+
+  useEffect(() => {
+    api
+      .get("/tickets")
+      .then((res) => setTickets(Object.values(res.data.tickets ?? {})))
+      .catch(() => setError(true));
+  }, []);
+
+  // selected ids in table order
+  const selectedIds = tickets ? tickets.filter((t) => selected.has(t.id)).map((t) => t.id) : [];
+  const allSelected = !!tickets?.length && selectedIds.length === tickets.length;
+
+  const toggle = (id) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+
+  const toggleAll = () => {
+    setSelected(allSelected ? new Set() : new Set(tickets.map((t) => t.id)));
+  };
+
+  const startJob = async () => {
+    setStarting(true);
+    setStartError(false);
+    try {
+      const res = await api.post("/api/jobs", { tickets: selectedIds });
+      router.push(`/job/${res.data.job_id}`);
+    } catch {
+      setStartError(true);
+      setStarting(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-[#f5f4ee] font-sans text-[#1f1e1d] antialiased">
+      <header className="sticky top-0 z-10 border-b border-[#e3e0d5] bg-[#f5f4ee]">
+        <nav className="flex items-center gap-2 overflow-x-auto p-2.5">
+          <button
+            type="button"
+            onClick={startJob}
+            disabled={selectedIds.length === 0 || starting}
+            className="mr-2 shrink-0 rounded-lg bg-[#c96442] px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#b5573a] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {starting
+              ? "Starting…"
+              : selectedIds.length > 0
+                ? `Create job (${selectedIds.length})`
+                : "Create job"}
+          </button>
+          <Link href="/" className={`${tab} ${tabActive}`}>
+            All tickets
+          </Link>
+          <Link href="/records" className={tab}>
+            All processed records
+          </Link>
+        </nav>
+      </header>
+
+      <main className="p-2.5">
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <h1 className="font-serif text-3xl font-medium tracking-tight">All tickets</h1>
+          {tickets?.length > 0 && (
+            <p className="text-sm text-[#6b6a64]">
+              {selectedIds.length} of {tickets.length} selected
+            </p>
+          )}
+        </div>
+
+        {startError && (
+          <p className="mb-3 rounded-lg bg-[#f3d9d2] px-3 py-2 text-sm text-[#9a3a22]">
+            Couldn&apos;t start the job. Try again.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+        )}
+        {error && (
+          <p className="text-[#6b6a64]">Couldn&apos;t load tickets. Check that the backend is running.</p>
+        )}
+        {!error && !tickets && <p className="text-[#6b6a64]">Loading tickets…</p>}
+        {tickets?.length === 0 && <p className="text-[#6b6a64]">No tickets yet.</p>}
+
+        {tickets?.length > 0 && (
+          <div className="overflow-x-auto rounded-xl border border-[#e3e0d5] bg-[#faf9f5]">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-[#e3e0d5] text-[#6b6a64]">
+                <tr>
+                  <th className="w-10 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all tickets"
+                      className={checkbox}
+                      checked={allSelected}
+                      onChange={toggleAll}
+                    />
+                  </th>
+                  <th className="px-4 py-3 font-medium">ID</th>
+                  <th className="px-4 py-3 font-medium">Subject</th>
+                  <th className="px-4 py-3 font-medium">From</th>
+                  <th className="px-4 py-3 font-medium">Channel</th>
+                  <th className="px-4 py-3 font-medium">Received</th>
+                  <th className="px-4 py-3 text-right font-medium">Attachments</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e3e0d5]">
+                {tickets.map((t) => (
+                  <tr
+                    key={t.id}
+                    onClick={() => toggle(t.id)}
+                    className={`cursor-pointer transition-colors ${
+                      selected.has(t.id) ? "bg-[#f6ebe3]" : "hover:bg-[#f5f4ee]"
+                    }`}
+                  >
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${t.id}`}
+                        className={checkbox}
+                        checked={selected.has(t.id)}
+                        onChange={() => toggle(t.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-[#6b6a64]">{t.id}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{t.subject}</div>
+                      <div className="max-w-md truncate text-[#6b6a64]" title={t.body}>
+                        {t.body}
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">{t.from_email}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{(t.channel ?? "").replace(/_/g, " ")}</td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      {new Date(t.received_at).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-right">{t.attachments}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </main>
     </div>
   );
