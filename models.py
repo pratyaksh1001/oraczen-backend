@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from datetime import date
+from pydantic import BaseModel, Field
 from enum import Enum
-
 
 class Product(str, Enum):
     orchestrator = "Zen Orchestrator"
@@ -40,7 +40,7 @@ class TicketResponse(BaseModel):
     refund_amount: float | None = None
     deadline: date | None = None
     escalated: bool
-    uncertain_fields: list[str] = []
+    uncertain_fields: list[str] = Field(default_factory=list)
 
 class ProcessedTicket(BaseModel):
     id: str
@@ -52,8 +52,8 @@ class ProcessedTicket(BaseModel):
     refund_amount: float | None = None
     deadline: date | None = None
     escalated: bool
-    uncertain_fields: list[str] = []
-    modified: list[str] = []
+    uncertain_fields: list[str] = Field(default_factory=list)
+    modified: list[str] = Field(default_factory=list)
 
 class Ticket(BaseModel):
     id: str
