@@ -55,24 +55,28 @@ export default function TicketsPage() {
     <div className="min-h-screen bg-[#f5f4ee] font-sans text-[#1f1e1d] antialiased">
       <header className="sticky top-0 z-10 border-b border-[#e3e0d5] bg-[#f5f4ee]">
         <nav className="flex items-center gap-2 overflow-x-auto p-2.5">
-          <button
-            type="button"
-            onClick={startJob}
-            disabled={selectedIds.length === 0 || starting}
-            className="mr-2 shrink-0 rounded-lg bg-[#c96442] px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#b5573a] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {starting
-              ? "Starting…"
-              : selectedIds.length > 0
-                ? `Create job (${selectedIds.length})`
-                : "Create job"}
-          </button>
+
           <Link href="/" className={`${tab} ${tabActive}`}>
             All tickets
           </Link>
           <Link href="/records" className={tab}>
             All processed records
           </Link>
+          <Link href="/jobs" className={tab}>
+            All jobs
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={startJob}
+                    disabled={selectedIds.length === 0 || starting}
+                    className="mr-2 shrink-0 rounded-lg bg-[#c96442] px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#b5573a] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {starting
+                      ? "Starting…"
+                      : selectedIds.length > 0
+                        ? `Create job (${selectedIds.length})`
+                        : "Create job"}
+                  </button>
         </nav>
       </header>
 

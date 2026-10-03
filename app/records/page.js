@@ -69,17 +69,15 @@ export default function RecordsPage() {
     <div className="min-h-screen bg-[#f5f4ee] font-sans text-[#1f1e1d] antialiased">
       <header className="sticky top-0 border-b border-[#e3e0d5] bg-[#f5f4ee]">
         <nav className="flex items-center gap-2 overflow-x-auto p-2.5">
-          <Link
-            href="/create"
-            className="mr-2 shrink-0 rounded-lg bg-[#c96442] px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#b5573a]"
-          >
-            Create job
-          </Link>
+
           <Link href="/" className={tab}>
             All tickets
           </Link>
           <Link href="/records" className={`${tab} ${tabActive}`}>
             All processed records
+          </Link>
+          <Link href="/jobs" className={tab}>
+            All jobs
           </Link>
         </nav>
       </header>
