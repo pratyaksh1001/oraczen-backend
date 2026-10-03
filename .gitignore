@@ -1,0 +1,10 @@
+data
+.venv
+*.csv
+DATA.md
+README.md
+.env
+.DS_store
+.idea
+__pycache__
+main_2.py
