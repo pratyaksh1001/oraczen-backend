@@ -324,38 +324,34 @@ async def get_results(job_id: int):
     }
 
 @app.get("/api/jobs/{job_id}/export.csv")
-async def get_export_csv(job_id: int):
+async def get_export_csv(job_id:int):
     if job_id not in jobs:
-        return {
-            "error": "Job not found"
-        }
+        return {"error":"Job not found"}
 
-    records = []
+    records=[]
 
     for record_id in jobs[job_id]["records"]:
-        record = processed_jobs.get(record_id)
+        record=processed_jobs.get(record_id)
 
         if record:
-            records.append(
-                record.model_dump(mode="json")
-            )
+            records.append(record.model_dump(mode="json"))
 
     if not records:
-        return {
-            "error": "No records found for this job"
-        }
+        return {"error":"No records found for this job"}
 
-    df = pd.DataFrame(records)
+    df=pd.DataFrame(records)
 
-    file_name = f"{job_id}_export.csv"
-    with tempfile.NamedTemporaryFile(mode="w+",delete=True) as tmp:
-        df.to_csv(tmp.name, index=False)
-        return FileResponse(
-            tmp.name,
-            media_type="text/csv",
-            filename=f"job_{job_id}.csv"
-        )
+    tmp=tempfile.NamedTemporaryFile(
+        mode="w",
+        suffix=".csv",
+        delete=False
+    )
 
+    tmp.close()
+
+    df.to_csv(tmp.name,index=False)
+
+    return FileResponse(tmp.name,media_type="text/csv",filename=f"job_{job_id}.csv")
 @app.get("/api/records/read/{id}")
 async def get_record(id: str):
     if id in processed_jobs:
