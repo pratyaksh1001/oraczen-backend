@@ -2,7 +2,7 @@ data
 .venv
 *.csv
 DATA.md
-README.md
+README_2.md
 .env
 .DS_store
 .idea

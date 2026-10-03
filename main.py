@@ -1,14 +1,16 @@
 from datetime import date
 from fastapi import FastAPI, BackgroundTasks,Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 from google import genai
-from enum import Enum
 import dotenv
 import os
 import json
 import pandas as pd
 import asyncio
+import tempfile
+from models import *
 
 dotenv.load_dotenv()
 
@@ -17,80 +19,13 @@ app = FastAPI()
 client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
 )
-
-MAX_WORKERS = int(os.getenv("MAX_WORKERS", "1"))
-
-class Product(str, Enum):
-    orchestrator = "Zen Orchestrator"
-    studio = "Zen Studio"
-    connect = "Zen Connect"
-    insights = "Zen Insights"
-    vault = "Zen Vault"
-
-class Category(str, Enum):
-    outage = "outage"
-    billing = "billing"
-    bug = "bug"
-    feature_request = "feature_request"
-    how_to = "how_to"
-    churn_risk = "churn_risk"
-
-class Severity(str, Enum):
-    low = "low"
-    medium = "medium"
-    high = "high"
-    critical = "critical"
-
-class RequestedAction(str, Enum):
-    refund = "refund"
-    credit = "credit"
-    fix = "fix"
-    callback = "callback"
-    information = "information"
-    none = "none"
-
-class TicketResponse(BaseModel):
-    company: str
-    product: Product
-    category: Category
-    severity: Severity
-    requested_action: RequestedAction
-    refund_amount: float | None = None
-    deadline: date | None = None
-    escalated: bool
-    uncertain_fields: list[str] = []
-
-class ProcessedTicket(BaseModel):
-    id: str
-    company: str
-    product: Product
-    category: Category
-    severity: Severity
-    requested_action: RequestedAction
-    refund_amount: float | None = None
-    deadline: date | None = None
-    escalated: bool
-    uncertain_fields: list[str] = []
-    modified: list[str] = []
-
-class Ticket(BaseModel):
-    id: str
-    subject: str
-    body: str
-    received_at: str
-    from_email: str
-    channel: str
-    attachments: int
-
-class JobRequest(BaseModel):
-    tickets: list[str]
-
-class HumanReview(BaseModel):
-    ticket_id: str
-    ticket: Ticket
-    ai_output: dict | None = None
-    reason: str
-    status: str = "needs_review"
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000","http://127.0.0.1:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+MAX_WORKERS = int(os.getenv("MAX_WORKERS"))
 
 ticket_dict = {}
 processed_jobs = {}
@@ -157,8 +92,6 @@ def gemini_agent_for_ticket(ticket: Ticket):
     return json.loads(response.text)
 
 def extract_ticket(ticket: Ticket):
-    validation_error = None
-
     for attempt in range(2):
         try:
             response_data = gemini_agent_for_ticket(ticket)
@@ -316,6 +249,11 @@ async def process_job(ticket_list: list[Ticket], job_id: int):
 
     print("Job completed:", job_id)
 
+
+@app.get("/tickets")
+async def get_tickets():
+    return {"tickets":ticket_dict}
+
 @app.post("/api/jobs", status_code=202)
 async def create_job(
     request: JobRequest,
@@ -349,9 +287,11 @@ async def create_job(
         job_id
     )
 
-    return {
-        "job_id": job_id
-    }
+    return {"job_id": job_id}
+
+@app.get("/api/jobs")
+async def get_jobs():
+    return {"jobs": jobs}
 
 @app.get("/api/jobs/{job_id}")
 async def get_job(job_id: int):
@@ -408,17 +348,13 @@ async def get_export_csv(job_id: int):
     df = pd.DataFrame(records)
 
     file_name = f"{job_id}_export.csv"
-
-    df.to_csv(
-        file_name,
-        index=False
-    )
-
-    return FileResponse(
-        file_name,
-        media_type="text/csv",
-        filename=f"job_{job_id}.csv"
-    )
+    with tempfile.NamedTemporaryFile(mode="w+",delete=True) as tmp:
+        df.to_csv(tmp.name, index=False)
+        return FileResponse(
+            tmp.name,
+            media_type="text/csv",
+            filename=f"job_{job_id}.csv"
+        )
 
 @app.get("/api/records/read/{id}")
 async def get_record(id: str):
@@ -502,7 +438,5 @@ async def update_record(id:str,request:Request):
         processed_jobs[id]=updated_record
 
         del failed[id]
-
         return updated_record.model_dump(mode="json")
-
     return {"error":"Record not found"}
